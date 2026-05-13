@@ -1,0 +1,32 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "rickettsia_sonora"
+version = "0.0.1"
+description = "Modelo de predicci\u00f3n de letalidad de Rickettsia en el estado de Sonora"
+authors = [
+  { name = "Esthefania Ortega, Oscar Senday, Mario Castro" },
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License"
+]
+requires-python = "~=3.10.0"
+
+
+[tool.ruff]
+line-length = 99
+src = ["rickettsia_sonora"]
+include = ["pyproject.toml", "rickettsia_sonora/**/*.py"]
+
+[tool.ruff.lint]
+extend-select = ["I"]  # Add import sorting
+
+[tool.ruff.lint.isort]
+known-first-party = ["rickettsia_sonora"]
+force-sort-within-sections = true
+
