@@ -233,96 +233,93 @@ def parsear_estacion(ruta: Path) -> pd.DataFrame | None:
 # Descarga y procesamiento de datos
 # =================================
 
-RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
-INTERIM_DATA_DIR.mkdir(parents=True, exist_ok=True)
-PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
-CARPETA.mkdir(parents=True, exist_ok=True)
+def _descargar_rickettsia() -> pd.DataFrame:
+    rick = get_rickettsia_data(URL_RICK)
+    if rick is None:
+        raise RuntimeError('No se pudo descargar ningún dataset de Rickettsia.')
+    rick.to_csv(INTERIM_DATA_DIR / 'rick_hist.csv', index=False)
+    print(f'  rick_hist.csv exportado: {rick.shape[0]:,} filas × {rick.shape[1]} columnas')
+    return rick
 
-# -- Descarga de datasets de Rickettisas Sonora --
-rick = get_rickettsia_data(URL_RICK)
 
-# -- Descarga de dataset CONAGUA --
-# Variables de conteo (se actualizarán conforme terminen los hilos)
-resultados = {
-    'descargados': [],
-    'omitidos': [],
-    'no_existen': [],
-    'errores': []
-}
+def _descargar_conagua() -> None:
+    resultados = {'descargados': [], 'omitidos': [], 'no_existen': [], 'errores': []}
+    claves    = range(CLAVE_INICIO, CLAVE_FIN + 1)
+    total     = len(claves)
+    procesados = 0
 
-print(f'Carpeta de salida : {CARPETA.resolve().relative_to(PROJ_ROOT)}')
-claves = range(CLAVE_INICIO, CLAVE_FIN + 1)
-total = len(claves)
-procesados = 0
-
-# requests.Session() para reutilizar las conexiones TCP
-with requests.Session() as sesion:
-    # max_workers para balance con el servidor
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        futuros = {executor.submit(procesar_clave, clave, sesion): clave for clave in claves}
-        
-        for futuro in as_completed(futuros):
-            procesados += 1
-            categoria, dato = futuro.result()
-            
-            if categoria == 'errores':
+    print(f'  Carpeta de salida: {CARPETA.resolve().relative_to(PROJ_ROOT)}')
+    with requests.Session() as sesion:
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futuros = {executor.submit(procesar_clave, clave, sesion): clave for clave in claves}
+            for futuro in as_completed(futuros):
+                procesados += 1
+                categoria, dato = futuro.result()
                 resultados[categoria].append(dato)
-            else:
-                resultados[categoria].append(dato)
+                print(
+                    f'\r  Descargando: {procesados}/{total} | '
+                    f'Éxito: {len(resultados["descargados"])} | '
+                    f'Vacíos: {len(resultados["no_existen"])} | '
+                    f'Errores: {len(resultados["errores"])}',
+                    end='', flush=True,
+                )
+    print()
+    print(f'  Descargados : {len(resultados["descargados"])}')
+    print(f'  Ya existían : {len(resultados["omitidos"])}')
+    print(f'  Sin archivo : {len(resultados["no_existen"])}')
+    print(f'  Errores     : {len(resultados["errores"])}')
+    if resultados['errores']:
+        print('  Detalle de errores:')
+        for e in resultados['errores']:
+            print(f"    clave {e['clave']}: {e['status']}")
 
-            # Imprimir progreso cada 50 o al final
-            print(f'\r ⏳ Descargando: {procesados}/{total} | Éxito: {len(resultados["descargados"])} | Vacíos: {len(resultados["no_existen"])} | Errores: {len(resultados["errores"])}', end='', flush=True)
-            # if procesados % 50 == 0 or procesados == total:
-                #print(f'  {procesados}/{total} — descargados: {len(resultados["descargados"])}, sin archivo: {len(resultados["no_existen"])}, errores: {len(resultados["errores"])}')
-        print()  # Nueva línea al finalizar
-print(f'\nDescargados  : {len(resultados["descargados"])}')
-print(f'Ya existían  : {len(resultados["omitidos"])}')
-print(f'Sin archivo  : {len(resultados["no_existen"])}')
-print(f'Errores      : {len(resultados["errores"])}')
 
-if resultados["errores"]:
-    print('\nDetalle de errores:')
-    for e in resultados["errores"]:
-        print(f"  clave {e['clave']}: {e['status']}")
+def _parsear_conagua() -> tuple[pd.DataFrame, pd.DataFrame]:
+    archivos = sorted(CARPETA.glob('dia*.txt'))
+    total    = len(archivos)
+    print(f'  Archivos a parsear: {total}')
 
-# -- Procesamiento de datos CONAGUA --
-# Procesar todos los archivos 
-archivos = sorted(CARPETA.glob('dia*.txt'))
-total    = len(archivos)
-print(f'Archivos a parsear: {len(archivos)}')
+    dfs = []
+    for i, ruta in enumerate(archivos, 1):
+        df = parsear_estacion(ruta)
+        if df is not None:
+            dfs.append(df)
+        if i % 50 == 0 or i == total:
+            print(f'    {i}/{total} archivos parseados...')
 
-dfs = []
-for i, ruta in enumerate(archivos, 1):
-    df = parsear_estacion(ruta)
-    if df is not None:
-        dfs.append(df)
+    df_total = pd.concat(dfs, ignore_index=True)
+    print(f'  DataFrame climatológico: {df_total.shape[0]:,} filas × {df_total.shape[1]} columnas')
 
-    if i % 50 == 0 or i == total:
-        print(f'  {i}/{total} archivos parseados...')
+    df_meta = (
+        df_total
+        .drop_duplicates(subset='clave')
+        [['clave', 'nombre', 'municipio', 'situacion', 'latitud', 'longitud', 'altitud']]
+        .reset_index(drop=True)
+    )
+    print(f'  Estaciones parseadas: {len(df_meta)}')
+    return df_total, df_meta
 
-df_total = pd.concat(dfs, ignore_index=True)
-print(f'\n DataFrame final: {df_total.shape[0]:,} filas × {df_total.shape[1]} columnas')
 
-# --Concatenación de datos de estaciones --
-df_meta = (
-    df_total
-    .drop_duplicates(subset='clave')
-    [['clave', 'nombre', 'municipio', 'situacion', 'latitud', 'longitud', 'altitud']]
-    .reset_index(drop=True)
-)
+def main() -> None:
+    RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    INTERIM_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    CARPETA.mkdir(parents=True, exist_ok=True)
 
-print(f'Estaciones parseadas  : {len(df_meta)}')
-print(f'Sin latitud           : {df_meta["latitud"].isna().sum()}')
-print(f'Sin longitud          : {df_meta["longitud"].isna().sum()}')
-print(f'Sin municipio         : {df_meta["municipio"].isna().sum()}')
+    print('Descargando datos de Rickettsia...')
+    _descargar_rickettsia()
 
-# ===================
-# Exportación de Datos
-# ===================
+    print('\nDescargando datos climatológicos de CONAGUA...')
+    _descargar_conagua()
 
-# Casos de Rickettsia en Sonora de 2022 a 2024
-rick.to_csv( INTERIM_DATA_DIR / 'rick_hist.csv', index=False)
-# Normales climatológicas diarias de Sonora
-df_total.to_csv(INTERIM_DATA_DIR / 'clima_diario.csv', index=False, encoding='utf-8-sig')
-# Catálogo de estaciones climatológicas
-df_meta.to_csv(INTERIM_DATA_DIR / 'catalogo_estaciones.csv', index=False, encoding='utf-8-sig')
+    print('\nProcesando archivos de estaciones...')
+    df_total, df_meta = _parsear_conagua()
+
+    print('\nExportando datos climatológicos...')
+    df_total.to_csv(INTERIM_DATA_DIR / 'clima_diario.csv', index=False, encoding='utf-8-sig')
+    df_meta.to_csv(INTERIM_DATA_DIR / 'catalogo_estaciones.csv', index=False, encoding='utf-8-sig')
+    print('  clima_diario.csv y catalogo_estaciones.csv exportados.')
+
+
+if __name__ == '__main__':
+    main()
