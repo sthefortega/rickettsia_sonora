@@ -160,8 +160,11 @@ Para mayor detalle, se puede consultar el reporte de resultados en **./reports/r
 ```
 
 ## Referencias
-https://pmc.ncbi.nlm.nih.gov/articles/PMC12928218/
-http://www.cenaprece.salud.gob.mx/programas/interior/vectores/descargas/pdf/Induccion_Atencionhumanorickett17.pdf
-https://salud.sonora.gob.mx/media/attachments/2026/01/20/informe-fmrr-se-01.2026-.pdf 
-https://salud.sonora.gob.mx/media/attachments/2026/05/15/informe-fmrr-se-18-2026.pdf
+- [Predictors of Fatal Outcomes among Pediatric Patients Hospitalized for Rocky Mountain Spotted Fever, Sonora, Mexico, 2004–2024](https://pmc.ncbi.nlm.nih.gov/articles/PMC12928218/)
+
+- [Taller de Inducción - Programa de Zoonosis - Rickettsiosis](http://www.cenaprece.salud.gob.mx/programas/interior/vectores/descargas/pdf/Induccion_Atencionhumanorickett17.pdf)
+
+- [Informe Epidemiológico Semanal de Rickettsiosis, Sonora 2026 - SE 01](https://salud.sonora.gob.mx/media/attachments/2026/01/20/informe-fmrr-se-01.2026-.pdf)
+
+- [Informe Epidemiológico Semanal de Rickettsiosis, Sonora 2026 - SE 18](https://salud.sonora.gob.mx/media/attachments/2026/05/15/informe-fmrr-se-18-2026.pdf)
 --------
