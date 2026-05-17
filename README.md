@@ -74,6 +74,22 @@ Considerando la Secretaría de Salud y el médico de primer contacto como usuari
 | AUC-ROC ≥ 0.85 | Confianza institucional en la herramienta para política pública |
 | F1-Score ≥ 0.85 | Balance operativo para el médico de primer contacto | 
 
+## Resultados obtenidos
+Se entrenaron cuatro modelos a partir de los datos de casos confirmados y descartados. A continuación se muestran los resultados: 
+
+| Modelo | Recall/Sensibilidad | Especificidad | AUC-ROC | F1-Score |
+|---|---|---|---|---|
+| **SVM** |  **0.7551** | 0.7485 | 0.8262 | 0.5670 |
+| **LogisticRegression** | 0.7244 | 0.8220 | 0.8347 | 0.6120 |
+| **Random Forest** | 0.6428 | 0.8785 | 0.8364 | 0.6176 | 
+| **GradientBoosting** | 0.4388 | 0.9435 | 0.7819 | 0.5341 | 
+
+Para mayor detalle, se puede consultar el reporte de resultados en **./reports/reporte_resultados.md**
+
+## Siguientes pasos
+1. Ajustar exhaustivamente parámetros de modelos prometedores 
+2. Probar modelos más complejos como XGBoost, LightGBM e incluso redes neuronales.
+
 
 ## Estructura del proyecto
 
@@ -82,7 +98,7 @@ Considerando la Secretaría de Salud y el médico de primer contacto como usuari
 ├── Makefile           <- Makefile with convenience commands like `make data` or `make train`
 ├── README.md          <- The top-level README for developers using this project.
 ├── data
-│   ├── external       <- 
+│   ├── external        
 │   ├── interim        <- Datos transformados en procesos intermedios
 │   ├── processed      <- Datos finales para modelado
 │   └── raw            <- Datos directamente descargados de su fuente
@@ -95,19 +111,26 @@ Considerando la Secretaría de Salud y el médico de primer contacto como usuari
 │   ├── 1.0-eot-ETL.ipynb        <- Descarga de datos crudos a raw/ con mínimo preprocesamiento
 │   ├── 2.0-eot-autoEDA.ipynb    <- Análisis exploratorio automático con SweetViz
 │   ├── 2.1-eot-EDA_PCA.ipynb    <- Análisis exploratorio, procesamiento intermedio y PCA.
-│   └── 2.2-macl-EDA.ipynb       <- Continuación de análisis exploratorio y procesamiento de datos final.
+│   ├── 2.2-macl-EDA.ipynb       <- Continuación de análisis exploratorio y procesamiento de datos final.
+│   ├── 3.0-eot-LogReg.ipynb     <- Modelo de LogisticRegression con regularización Lasso para selección de features.
+│   └── 4.0-macl-model.ipynb     <- Modelos de aprendizaje para clasificación: LogReg, SVM, Random Forest y Gradient Boosting.
 │
 ├── pyproject.toml     <- Project configuration file with package metadata for 
 │                         rickettsia_sonora and configuration for tools like black
 │
-├── references                     <- Data dictionaries, manuals, and all other explanatory materials.
-│   ├── catalogo.xlsx              <- Catalogo para especie, servicio y motivo de rechazo de muestra, descargado de Datos Abiertos.
-│   ├── diccionario_ricket_1.csv   <- Diccionario de variables de datos, descargado de Datos Abiertos.
-│   └── 
+├── references                          
+│   ├── catalogo.xlsx                   <- Catalogo para especie, servicio y motivo de rechazo de muestra, descargado de Datos Abiertos.
+│   ├── diccionario_ricket_1.csv        <- Diccionario de variables de datos, descargado de Datos Abiertos.
+│   ├── GPC_FMRR_2023.pdf               <- Guía de Práctica Clínica para Rickettsiosis de la Secretaria de Salud
+|   ├── diccionario_ricket_1.md         <- Diccionario de datos crudos
+│   ├── diccionario_rick_eda_imput.md   <- Diccionario de datos procesados.
+│   ├── diccionario_ricket_1.csv        <- Diccionario de datos crudos en CSV.
+│   └── diccionario_rick_eda_imput.csv  <- Diccionario de datos procesados en CSV. 
 │
-├── reports                         <- Generated analysis as HTML, PDF, LaTeX, etc.
+├── reports                         
 │   ├── figures                     <- Gráficos generados y figuras a usarse en reportes
-│   └── SWEETVIZ_REPORT.html        <- Reporte de AutoEDA con SweetViz.
+│   ├── SWEETVIZ_REPORT.html        <- Reporte de AutoEDA con SweetViz.
+│   └── reporte_resultados.md       <- Reporte de resultados y discusión
 │
 ├── src            
 │   └── data        
@@ -137,8 +160,11 @@ Considerando la Secretaría de Salud y el médico de primer contacto como usuari
 ```
 
 ## Referencias
-https://pmc.ncbi.nlm.nih.gov/articles/PMC12928218/
-http://www.cenaprece.salud.gob.mx/programas/interior/vectores/descargas/pdf/Induccion_Atencionhumanorickett17.pdf
-https://salud.sonora.gob.mx/media/attachments/2026/01/20/informe-fmrr-se-01.2026-.pdf 
-https://salud.sonora.gob.mx/media/attachments/2026/05/15/informe-fmrr-se-18-2026.pdf
+- [Predictors of Fatal Outcomes among Pediatric Patients Hospitalized for Rocky Mountain Spotted Fever, Sonora, Mexico, 2004–2024](https://pmc.ncbi.nlm.nih.gov/articles/PMC12928218/)
+
+- [Taller de Inducción - Programa de Zoonosis - Rickettsiosis](http://www.cenaprece.salud.gob.mx/programas/interior/vectores/descargas/pdf/Induccion_Atencionhumanorickett17.pdf)
+
+- [Informe Epidemiológico Semanal de Rickettsiosis, Sonora 2026 - SE 01](https://salud.sonora.gob.mx/media/attachments/2026/01/20/informe-fmrr-se-01.2026-.pdf)
+
+- [Informe Epidemiológico Semanal de Rickettsiosis, Sonora 2026 - SE 18](https://salud.sonora.gob.mx/media/attachments/2026/05/15/informe-fmrr-se-18-2026.pdf)
 --------
